@@ -1,5 +1,5 @@
 ---
-title: LOOM 
+title: LOOM - build agents fast - really
 description: LOOM ([L]ightweight [O]rchestration [O]f [M]ultiple agents) is an AI Agent orchestration toolkit.
 template: splash
 hero:
@@ -17,7 +17,6 @@ hero:
       variant: minimal
 ---
 
-
 ## Get Started
 
 ```bash
@@ -25,7 +24,7 @@ $ npm i loom-agents
 ```
 
 ```typescript
-import { Agent } from 'loom-agents';
+import { Agent } from "loom-agents";
 
 const agent = new Agent({
   name: "Loomie",
@@ -41,42 +40,44 @@ $ bun index.ts
 🚀 Pfft, you kidding? Hell yeah, let's build this thing! 🔥😎
 ```
 
-import { Card, CardGrid } from '@astrojs/starlight/components';
+import { Card, CardGrid } from "@astrojs/starlight/components";
 
 ## Key Features
 
 <CardGrid stagger>
-	<Card title="Hierarchical Agent Structure" icon="setting">
-		Create specialized agents that can collaborate to solve complex problems.
-	</Card>
-	<Card title="Advanced Tracing" icon="document">
-		Track every step of your agent's execution with detailed, hierarchical traces.
-	</Card>
-	<Card title="Tool Integration" icon="puzzle">
-		Extend your agents with custom tools for database access, API calls, and more.
-	</Card>
-	<Card title="OpenAI Compatible" icon="open-book">
-		Built to work seamlessly with OpenAI's latest models and capabilities.
-	</Card>
+  <Card title="Hierarchical Agent Structure" icon="setting">
+    Create specialized agents that can collaborate to solve complex problems.
+  </Card>
+  <Card title="Advanced Tracing" icon="document">
+    Track every step of your agent's execution with detailed, hierarchical
+    traces.
+  </Card>
+  <Card title="Tool Integration" icon="puzzle">
+    Extend your agents with custom tools for database access, API calls, and
+    more.
+  </Card>
+  <Card title="OpenAI Compatible" icon="open-book">
+    Built to work seamlessly with OpenAI's latest models and capabilities.
+  </Card>
 </CardGrid>
 
 ## Core Components
 
 <CardGrid>
-	<Card title="Agent" icon="seti:typescript">
-		The core component that interacts with AI models and tools.
-		[Learn more](/docs/reference/agent/)
-	</Card>
-	<Card title="Trace" icon="document">
-		Track execution with detailed hierarchical logging.
-		[Learn more](/docs/reference/trace/)
-	</Card>
-	<Card title="Runner" icon="rocket">
-		Execute agents with consistent configuration and error handling.
-		[Learn more](/docs/reference/runner/)
-	</Card>
-	<Card title="Loom" icon="setting">
-		Global configuration for OpenAI API settings.
-		[Learn more](/docs/reference/loom/)
-	</Card>
+  <Card title="Agent" icon="seti:typescript">
+    The core component that interacts with AI models and tools. [Learn
+    more](/docs/reference/agent/)
+  </Card>
+  <Card title="Trace" icon="document">
+    Track execution with detailed hierarchical logging. [Learn
+    more](/docs/reference/trace/)
+  </Card>
+  <Card title="Runner" icon="rocket">
+    Execute agents with consistent configuration and error handling. [Learn
+    more](/docs/reference/runner/)
+  </Card>
+  <Card title="Loom" icon="setting">
+    Global configuration for OpenAI API settings. [Learn
+    more](/docs/reference/loom/)
+  </Card>
 </CardGrid>
