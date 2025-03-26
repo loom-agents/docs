@@ -1,0 +1,54 @@
+---
+title: Loom
+description: Global configuration for OpenAI API settings
+---
+
+The `Loom` module provides global configuration for OpenAI API settings. It's implemented as a singleton that maintains consistent settings across your application.
+
+## Basic Usage
+
+```typescript
+import { Loom } from 'loom-agents';
+
+// Configure OpenAI API
+Loom.api = 'completions'; // or 'responses'
+Loom.openai_config = { 
+  apiKey: process.env.OPENAI_API_KEY,
+  organization: process.env.OPENAI_ORG_ID
+};
+
+// Access OpenAI client
+const completion = await Loom.openai.chat.completions.create({
+  model: 'gpt-4o',
+  messages: [{ role: 'user', content: 'Hello!' }]
+});
+```
+
+## Configuration Options
+
+The `ConfigOptions` interface defines available configuration:
+
+```typescript
+interface ConfigOptions {
+  api?: 'completions' | 'responses';  // API mode to use
+  openai_config?: ClientOptions;      // OpenAI client configuration
+}
+```
+
+## Setting API Mode
+
+The `api` property controls which OpenAI endpoint to use:
+
+```typescript
+// Use OpenAI's Chat Completions API
+Loom.api = 'completions';
+
+// Use OpenAI's Responses API
+Loom.api = 'responses';
+```
+
+The selected API mode affects how [Agents](/reference/agent) process requests.
+
+## Configuring OpenAI Client
+
+The `openai_config` property accepts any options supported by the OpenAI Node.js client:

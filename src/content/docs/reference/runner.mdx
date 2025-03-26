@@ -1,0 +1,109 @@
+---
+title: Runner
+description: Orchestrates agent execution and manages multi-turn interactions
+---
+
+The `Runner` class orchestrates the execution of [Agents](/reference/agent), handling multi-turn interactions and providing execution context.
+
+## Creating a Runner
+
+```typescript
+import { Agent, Runner } from 'loom-agents';
+
+const agent = new Agent({
+  name: 'Assistant',
+  purpose: 'Help with general tasks',
+  // ... other config
+});
+
+const runner = new Runner(agent, {
+  name: 'MainRunner',
+  max_depth: 5,
+  context: {
+    user_id: 'user-123',
+    session_start: Date.now()
+  }
+});
+```
+
+## Runner Configuration
+
+The `RunnerConfig` interface defines available configuration options:
+
+```typescript
+interface RunnerConfig {
+  max_depth?: number;           // Optional: Maximum number of turns (default: 10)
+  name?: string;                // Optional: Runner name (default: "Runner")
+  id?: string;                  // Optional: Unique ID (default: auto-generated UUID)
+  context?: Record<string, any>; // Optional: Additional context data
+}
+```
+
+## Running an Agent
+
+The `run` method executes the agent and manages the interaction flow:
+
+```typescript
+// Simple string input
+const result = await runner.run('Help me write a resume');
+
+// Rich context input
+const result = await runner.run({
+  context: [
+    { role: 'user', content: 'I need help with my resume' },
+    { role: 'assistant', content: 'I can help! What industry are you in?' },
+    { role: 'user', content: 'Software engineering' }
+  ],
+  trace: parentTrace // Optional: parent trace for nested execution
+});
+```
+
+## Managing Execution Flow
+
+The Runner handles:
+
+1. Executing the agent with the provided input
+2. Processing agent responses and tool calls
+3. Managing multi-turn conversations up to `max_depth`
+4. Tracing execution with the integrated [Tracer](/reference/trace)
+
+## Handling Results
+
+The `run` method returns:
+
+```typescript
+type RunResult = {
+  status: string;             // "completed", "error", etc.
+  final_message: string;      // The final output message
+  context: ResponseInputItem[] | ChatCompletionMessageParam[]; // The full conversation context
+}
+```
+
+## Accessing Execution Data
+
+The Runner provides methods to access execution details:
+
+```typescript
+// Get the conversation history
+const messages = runner.GetMessages();
+
+// Get the tracer for detailed execution logs
+const tracer = runner.GetTracer();
+console.log(tracer.render()); // Print execution trace
+```
+
+## Execution Depth and Handling
+
+The Runner prevents infinite loops by enforcing a maximum execution depth:
+
+```typescript
+const runner = new Runner(agent, {
+  max_depth: 5 // Agent will stop after 5 interaction turns
+});
+```
+
+## Related
+
+- [Agent](/reference/agent): The core AI component orchestrated by Runners
+- [Trace](/reference/trace): Provides detailed execution logs
+- [Loom](/reference/loom): Global configuration for OpenAI settings

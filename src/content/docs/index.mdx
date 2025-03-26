@@ -1,36 +1,82 @@
 ---
-title: Welcome to Starlight
-description: Get started building your docs site with Starlight.
+title: LOOM 
+description: LOOM ([L]ightweight [O]rchestration [O]f [M]ultiple agents) is an AI Agent orchestration toolkit.
 template: splash
 hero:
-  tagline: Congrats on setting up a new Starlight project!
+  tagline: lets you build 𝙛𝙖𝙨𝙩 agents 𝙛𝙖𝙨𝙩𝙚𝙧
   image:
-    file: ../../assets/houston.webp
+    alt: A glittering, brightly colored logo
+    file: ../../assets/loomie.png
   actions:
-    - text: Example Guide
-      link: /guides/example/
+    - text: Introduction
+      link: /guides/introduction/
       icon: right-arrow
-    - text: Read the Starlight docs
-      link: https://starlight.astro.build
+    - text: View on GitHub
+      link: https://github.com/loom-agents/agents
       icon: external
       variant: minimal
 ---
 
+
+## Get Started
+
+```bash
+$ npm i loom-agents
+```
+
+```typescript
+import { Agent } from 'loom-agents';
+
+const agent = new Agent({
+  name: "Loomie",
+  purpose: "You're an AI agent made to automate tasks simply and fast!",
+});
+
+const result = await agent.run("Ready to get building?");
+console.log(result.final_message);
+```
+
+```bash
+$ bun index.ts
+🚀 Pfft, you kidding? Hell yeah, let's build this thing! 🔥😎
+```
+
 import { Card, CardGrid } from '@astrojs/starlight/components';
 
-## Next steps
+## Key Features
 
 <CardGrid stagger>
-	<Card title="Update content" icon="pencil">
-		Edit `src/content/docs/index.mdx` to see this page change.
+	<Card title="Hierarchical Agent Structure" icon="setting">
+		Create specialized agents that can collaborate to solve complex problems.
 	</Card>
-	<Card title="Add new content" icon="add-document">
-		Add Markdown or MDX files to `src/content/docs` to create new pages.
+	<Card title="Advanced Tracing" icon="document">
+		Track every step of your agent's execution with detailed, hierarchical traces.
 	</Card>
-	<Card title="Configure your site" icon="setting">
-		Edit your `sidebar` and other config in `astro.config.mjs`.
+	<Card title="Tool Integration" icon="puzzle">
+		Extend your agents with custom tools for database access, API calls, and more.
 	</Card>
-	<Card title="Read the docs" icon="open-book">
-		Learn more in [the Starlight Docs](https://starlight.astro.build/).
+	<Card title="OpenAI Compatible" icon="open-book">
+		Built to work seamlessly with OpenAI's latest models and capabilities.
+	</Card>
+</CardGrid>
+
+## Core Components
+
+<CardGrid>
+	<Card title="Agent" icon="seti:typescript">
+		The core component that interacts with AI models and tools.
+		[Learn more](/reference/agent/)
+	</Card>
+	<Card title="Trace" icon="document">
+		Track execution with detailed hierarchical logging.
+		[Learn more](/reference/trace/)
+	</Card>
+	<Card title="Runner" icon="rocket">
+		Execute agents with consistent configuration and error handling.
+		[Learn more](/reference/runner/)
+	</Card>
+	<Card title="Loom" icon="setting">
+		Global configuration for OpenAI API settings.
+		[Learn more](/reference/loom/)
 	</Card>
 </CardGrid>

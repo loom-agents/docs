@@ -1,0 +1,125 @@
+---
+title: Trace
+description: Structured logging and performance monitoring for agent operations
+---
+
+The `Trace` module provides structured logging and performance tracking for agent operations, making it easier to debug, analyze, and optimize agent behavior.
+
+## Trace Classes
+
+The module consists of two main classes:
+
+- `Trace`: Represents an individual trace entry
+- `Tracer`: Manages a hierarchy of traces
+
+## Creating a Trace
+
+Traces are typically created through the `Tracer` class:
+
+```typescript
+import { Tracer } from 'loom-agents';
+
+const tracer = new Tracer();
+const rootTrace = tracer.start('main-operation', { 
+  input: 'user query',
+  timestamp: Date.now() 
+});
+```
+
+## Adding Sub-traces
+
+Traces can be nested to represent hierarchical operations:
+
+```typescript
+// Start a child trace
+const parseTrace = rootTrace.start('parse-input', { 
+  parser: 'default',
+  input_length: input.length 
+});
+
+// Perform operation
+const result = parseInput(input);
+
+// End the trace (returns duration in ms)
+const duration = parseTrace.end();
+console.log(`Parsing took ${duration}ms`);
+```
+
+## The Trace Interface
+
+The `TraceDetails` interface defines the structure of trace data:
+
+```typescript
+interface TraceDetails {
+  name: string;           // Operation name
+  uuid: string;           // Unique trace identifier
+  data: any;              // Associated metadata
+  startTime: number;      // Timestamp when trace started
+  endTime?: number;       // Timestamp when trace ended (if completed)
+  children: TraceDetails[]; // Child traces
+}
+```
+
+## Using the Tracer
+
+The `Tracer` class provides methods for managing traces:
+
+```typescript
+// Create a new tracer
+const tracer = new Tracer();
+
+// Start the root trace
+const rootTrace = tracer.start('operation', data);
+
+// Access the current trace
+const currentTrace = tracer.getTrace();
+
+// Render the trace hierarchy
+const traceOutput = tracer.render();
+console.log(traceOutput);
+```
+
+## Rendering Traces
+
+The `render` method produces a formatted tree representation of the trace:
+
+```
+[trace.123e4567-e89b-12d3-a456-426614174000] operation (1200 ms) - {"input":"query"}
+└─ [trace.234e5678-e89b-12d3-a456-426614174001] parse-input (50 ms) - {"parser":"default"}
+├─ [trace.345e6789-e89b-12d3-a456-426614174002] tokenize (20 ms) - {"tokens":15}
+└─ [trace.456e7890-e89b-12d3-a456-426614174003] process (1000 ms) - {"model":"gpt-4o"}
+```
+
+## Integration with Agents and Runners
+
+The trace system is integrated with [Agent](/reference/agent) and [Runner](/reference/runner) classes:
+
+```typescript
+// When running an agent directly
+const trace = new Trace('agent-execution', { agent: agent.uuid });
+const result = await agent.run(input, trace);
+
+// Runner automatically creates traces
+const runner = new Runner(agent);
+const result = await runner.run(input);
+const traceOutput = runner.GetTracer().render();
+```
+
+## Performance Analysis
+
+Traces can be used to identify performance bottlenecks:
+
+```typescript
+// Get total execution time
+const totalTime = rootTrace.end(); // Returns total duration in ms
+
+// Analyze time spent in operations
+const traceOutput = tracer.render();
+console.log(traceOutput); // Shows duration for each operation
+```
+
+## Related
+
+- [Agent](/reference/agent): Core component that generates traces during execution
+- [Runner](/reference/runner): Orchestrates agents and manages trace hierarchy
+- [Loom](/reference/loom): Global configuration

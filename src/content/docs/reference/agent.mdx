@@ -1,0 +1,134 @@
+---
+title: Agent
+description: Core component for building AI assistants with specific purposes and capabilities
+---
+
+The `Agent` class is the primary building block in the Loom framework. It represents an AI assistant with a specific purpose, capable of using tools and generating responses.
+
+## Creating an Agent
+
+```typescript
+import { Agent } from 'loom-agents';
+
+const agent = new Agent({
+  name: 'Researcher',
+  purpose: 'Find and summarize information',
+  model: 'gpt-4o',
+  mode: 'completions', // or 'responses'
+  tools: [
+    // Tool definitions
+  ],
+  web_search: {
+    enabled: true,
+    config: {
+      search_context_size: 'medium'
+    }
+  }
+});
+```
+
+## Agent Configuration
+
+The `AgentConfig` interface defines the available configuration options:
+
+```typescript
+interface AgentConfig {
+  name: string;                 // Required: Unique name for the agent
+  purpose: string;              // Required: Defines the agent's objective
+  sub_agents?: Agent[];         // Optional: Sub-agents that can be called
+  tools?: ToolCall[];           // Optional: Tools the agent can use
+  model?: string;               // Optional: Default is 'gpt-4o'
+  web_search?: WebSearchConfig; // Optional: Web search configuration
+  timeout_ms?: number;          // Optional: Default is 60000ms (1 minute)
+  mode?: 'responses' | 'completions'; // Optional: API mode, default depends on Loom.api
+}
+```
+
+## Running an Agent
+
+Agents can process string inputs or more complex request objects:
+
+```typescript
+// Simple string input
+const result = await agent.run('Find information about quantum computing');
+
+// Context-aware request
+const result = await agent.run({
+  context: [
+    { role: 'user', content: 'What can you tell me about quantum computing?' },
+    { role: 'assistant', content: 'Quantum computing is a type of computing that uses quantum phenomena...' },
+    { role: 'user', content: 'How does it compare to classical computing?' }
+  ]
+});
+```
+
+## Defining Tools
+
+Tools allow agents to interact with external systems or perform specialized tasks:
+
+```typescript
+const tools = [
+  {
+    name: 'fetchWeather',
+    description: 'Get current weather for a location',
+    parameters: {
+      location: {
+        type: 'string',
+        description: 'City name or coordinates'
+      }
+    },
+    callback: async ({ location }) => {
+      // Implementation to fetch weather data
+      return { temperature: 72, conditions: 'sunny' };
+    }
+  }
+];
+```
+
+## Using Web Search
+
+Agents can perform web searches when configured:
+
+```typescript
+const agent = new Agent({
+  // ... other config
+  web_search: {
+    enabled: true,
+    config: {
+      search_context_size: 'high', // 'high', 'medium', or 'low'
+      user_location: {
+        type: 'approximate',
+        country: 'US',
+        city: 'San Francisco'
+      }
+    }
+  }
+});
+```
+
+## Composing with Sub-agents
+
+Agents can delegate tasks to specialized sub-agents:
+
+```typescript
+const mathAgent = new Agent({
+  name: 'MathExpert',
+  purpose: 'Solve complex math problems',
+  // ... other config
+});
+
+const researchAgent = new Agent({
+  name: 'Researcher',
+  purpose: 'Find and summarize information',
+  sub_agents: [mathAgent],
+  // ... other config
+});
+
+// The researchAgent can now call mathAgent for math problems
+```
+
+## Related
+
+- [Runner](/reference/runner): Orchestrates agent execution
+- [Trace](/reference/trace): Provides observability for agent operations
+- [Loom](/reference/loom): Global configuration for OpenAI settings
