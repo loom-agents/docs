@@ -5,7 +5,7 @@ import starlight from "@astrojs/starlight";
 // https://astro.build/config
 export default defineConfig({
   site: 'https://loom-agents.github.io',
-  base: 'docs',
+  base: '/docs',
   integrations: [
     starlight({
       title: "Loom",
