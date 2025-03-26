@@ -40,6 +40,8 @@ interface AgentConfig {
   mcp_servers?: (MCPServerSSE | MCPServerStdio)[];
   web_search?: WebSearchConfig; // Optional: Web search configuration
   timeout_ms?: number; // Optional: Default is 60000ms (1 minute)
+  client_config?: ClientOptions; // Optional: A custom OpenAI ClientOptions object for this Agent
+  api?: "completions" | "responses"; // Optional: Force this client to use a different API than the Loom global config
 }
 ```
 
@@ -164,6 +166,23 @@ const greetingAgent = new Agent({
       },
     }),
   ],
+});
+```
+
+## Advanced Agent Model Configuration
+
+Some model providers make models that are better for certain tasks, so we need a way to Loom configurations to work with these providers. 
+
+```typescript
+const deepseekAgent = new Agent({
+  name: "DeekSeek",
+  purpose: "Are you deepseek or chatgpt? You tell me!",
+  model: "deepseek-chat",
+  api: "completions", // we need to override this specific model to use the completions api since deekseek doesn't support responses. 
+  client_config: { // this will create a deepseekAgent specific OpenAI client. 
+    baseURL: "https://api.deepseek.com",
+    apiKey: "sk-",
+  },
 });
 ```
 
