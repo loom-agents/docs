@@ -1,6 +1,6 @@
 # Loom Agents
 
-Read the (docs)[https://loom-agents.github.io/docs/]
+Read the [docs](https://loom-agents.github.io/docs/)
 
 ### or...
 
