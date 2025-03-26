@@ -111,6 +111,35 @@ const tools = [
 ];
 ```
 
+## Agents as Tools
+
+Sub agents are great, but sometimes we need to leverage the power of an Agent, while not fully influencing the context of our whole orchestration, that's where using Agents as Tools comes in. 
+
+```typescript
+const translationAgent = new Agent({
+  name: "Translation Agent",
+  purpose:
+    "I translate text into different languages, just let me know the language you want to translate to.",
+});
+
+const greetingAgent = new Agent({
+  name: "Greeting Agent",
+  purpose: "Generate a greeting",
+  tools: [
+    translationAgent.asTool({
+      request: {
+        type: "string",
+        description: `The text to translate`,
+      },
+      language: {
+        type: "string",
+        description: `The language to translate to`,
+      },
+    }),
+  ],
+});
+```
+
 ## Using Web Search
 
 Agents can perform web searches when configured:
