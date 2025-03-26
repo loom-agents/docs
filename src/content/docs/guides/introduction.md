@@ -43,10 +43,10 @@ console.log(result.final_message);
 
 Loom is designed around a modular architecture:
 
-- **[Agent](/reference/agent)**: The primary abstraction for AI capabilities
-- **[Runner](/reference/runner)**: Manages execution flow and handles agent communication
-- **[Trace](/reference/trace)**: Provides detailed execution logs and timing information
-- **[Loom](/reference/loom)**: Global configuration singleton for OpenAI settings
+- **[Agent](/docs/reference/agent)**: The primary abstraction for AI capabilities
+- **[Runner](/docs/reference/runner)**: Manages execution flow and handles agent communication
+- **[Trace](/docs/reference/trace)**: Provides detailed execution logs and timing information
+- **[Loom](/docs/reference/loom)**: Global configuration singleton for OpenAI settings
 
 ## Key Features
 

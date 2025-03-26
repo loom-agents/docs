@@ -9,7 +9,7 @@ export default defineConfig({
   integrations: [
     starlight({
       title: "Loom",
-      favicon: "./public/favicon.ico",
+      favicon: "favicon.ico",
       customCss: [
         './src/styles/theme.css',
       ],

@@ -142,7 +142,7 @@ console.log(result.final_message);
 
 ## Related
 
-- [Agent](/reference/agent): Core agent implementation
-- [Runner](/reference/runner): Agent execution orchestration
-- [Trace](/reference/trace): Execution tracing and debugging
-- [Loom](/reference/loom): Global configuration
+- [Agent](/docs/reference/agent): Core agent implementation
+- [Runner](/docs/reference/runner): Agent execution orchestration
+- [Trace](/docs/reference/trace): Execution tracing and debugging
+- [Loom](/docs/reference/loom): Global configuration

@@ -3,7 +3,7 @@ title: Runner
 description: Orchestrates agent execution and manages multi-turn interactions
 ---
 
-The `Runner` class orchestrates the execution of [Agents](/reference/agent), handling multi-turn interactions and providing execution context.
+The `Runner` class orchestrates the execution of [Agents](/docs/reference/agent), handling multi-turn interactions and providing execution context.
 
 ## Creating a Runner
 
@@ -65,7 +65,7 @@ The Runner handles:
 1. Executing the agent with the provided input
 2. Processing agent responses and tool calls
 3. Managing multi-turn conversations up to `max_depth`
-4. Tracing execution with the integrated [Tracer](/reference/trace)
+4. Tracing execution with the integrated [Tracer](/docs/reference/trace)
 
 ## Handling Results
 
@@ -104,6 +104,6 @@ const runner = new Runner(agent, {
 
 ## Related
 
-- [Agent](/reference/agent): The core AI component orchestrated by Runners
-- [Trace](/reference/trace): Provides detailed execution logs
-- [Loom](/reference/loom): Global configuration for OpenAI settings
+- [Agent](/docs/reference/agent): The core AI component orchestrated by Runners
+- [Trace](/docs/reference/trace): Provides detailed execution logs
+- [Loom](/docs/reference/loom): Global configuration for OpenAI settings
