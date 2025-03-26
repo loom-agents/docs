@@ -8,21 +8,21 @@ The `Runner` class orchestrates the execution of [Agents](/docs/reference/agent)
 ## Creating a Runner
 
 ```typescript
-import { Agent, Runner } from 'loom-agents';
+import { Agent, Runner } from "loom-agents";
 
 const agent = new Agent({
-  name: 'Assistant',
-  purpose: 'Help with general tasks',
+  name: "Assistant",
+  purpose: "Help with general tasks",
   // ... other config
 });
 
 const runner = new Runner(agent, {
-  name: 'MainRunner',
+  name: "MainRunner",
   max_depth: 5,
   context: {
-    user_id: 'user-123',
-    session_start: Date.now()
-  }
+    user_id: "user-123",
+    session_start: Date.now(),
+  },
 });
 ```
 
@@ -32,9 +32,9 @@ The `RunnerConfig` interface defines available configuration options:
 
 ```typescript
 interface RunnerConfig {
-  max_depth?: number;           // Optional: Maximum number of turns (default: 10)
-  name?: string;                // Optional: Runner name (default: "Runner")
-  id?: string;                  // Optional: Unique ID (default: auto-generated UUID)
+  max_depth?: number; // Optional: Maximum number of turns (default: 10)
+  name?: string; // Optional: Runner name (default: "Runner")
+  id?: string; // Optional: Unique ID (default: auto-generated UUID)
   context?: Record<string, any>; // Optional: Additional context data
 }
 ```
@@ -45,16 +45,15 @@ The `run` method executes the agent and manages the interaction flow:
 
 ```typescript
 // Simple string input
-const result = await runner.run('Help me write a resume');
+const result = await runner.run("Help me write a resume");
 
 // Rich context input
 const result = await runner.run({
   context: [
-    { role: 'user', content: 'I need help with my resume' },
-    { role: 'assistant', content: 'I can help! What industry are you in?' },
-    { role: 'user', content: 'Software engineering' }
+    { role: "user", content: "I need help with my resume" },
+    { role: "assistant", content: "I can help! What industry are you in?" },
+    { role: "user", content: "Software engineering" },
   ],
-  trace: parentTrace // Optional: parent trace for nested execution
 });
 ```
 
@@ -69,13 +68,11 @@ The Runner handles:
 
 ## Handling Results
 
-The `run` method returns:
+The `run` method returns a `RunnerResponse` which is a souped-up [AgentResponse](/docs/reference/agent)
 
 ```typescript
-type RunResult = {
-  status: string;             // "completed", "error", etc.
-  final_message: string;      // The final output message
-  context: ResponseInputItem[] | ChatCompletionMessageParam[]; // The full conversation context
+interface RunnerResponse<T> extends AgentResponse<T> {
+  trace: Trace; // The execution trace
 }
 ```
 
@@ -84,12 +81,14 @@ type RunResult = {
 The Runner provides methods to access execution details:
 
 ```typescript
-// Get the conversation history
-const messages = runner.GetMessages();
+// Get the most recent trace
+const lastTrace = runner.getLastTrace();
 
-// Get the tracer for detailed execution logs
-const tracer = runner.GetTracer();
-console.log(tracer.render()); // Print execution trace
+// Get all traces from this runner
+const traces = runner.getTraces();
+
+// Render the last trace for debugging
+console.log(lastTrace.render());
 ```
 
 ## Execution Depth and Handling
@@ -98,9 +97,11 @@ The Runner prevents infinite loops by enforcing a maximum execution depth:
 
 ```typescript
 const runner = new Runner(agent, {
-  max_depth: 5 // Agent will stop after 5 interaction turns
+  max_depth: 5, // Agent will stop after 5 interaction turns
 });
 ```
+
+If the maximum depth is reached before the agent completes its task, the runner will return the current state with the status from the agent's last response.
 
 ## Related
 

@@ -8,22 +8,21 @@ The `Agent` class is the primary building block in the Loom framework. It repres
 ## Creating an Agent
 
 ```typescript
-import { Agent } from 'loom-agents';
+import { Agent } from "loom-agents";
 
 const agent = new Agent({
-  name: 'Researcher',
-  purpose: 'Find and summarize information',
-  model: 'gpt-4o',
-  mode: 'completions', // or 'responses'
+  name: "Researcher",
+  purpose: "Find and summarize information",
+  model: "gpt-4o",
   tools: [
     // Tool definitions
   ],
   web_search: {
     enabled: true,
     config: {
-      search_context_size: 'medium'
-    }
-  }
+      search_context_size: "medium",
+    },
+  },
 });
 ```
 
@@ -33,14 +32,31 @@ The `AgentConfig` interface defines the available configuration options:
 
 ```typescript
 interface AgentConfig {
-  name: string;                 // Required: Unique name for the agent
-  purpose: string;              // Required: Defines the agent's objective
-  sub_agents?: Agent[];         // Optional: Sub-agents that can be called
-  tools?: ToolCall[];           // Optional: Tools the agent can use
-  model?: string;               // Optional: Default is 'gpt-4o'
+  name: string; // Required: Unique name for the agent
+  purpose: string; // Required: Defines the agent's objective
+  sub_agents?: Agent[]; // Optional: Sub-agents that can be called
+  tools?: ToolCall[]; // Optional: Tools the agent can use
+  model?: string; // Optional: Default is 'gpt-4o'
   web_search?: WebSearchConfig; // Optional: Web search configuration
-  timeout_ms?: number;          // Optional: Default is 60000ms (1 minute)
-  mode?: 'responses' | 'completions'; // Optional: API mode, default depends on Loom.api
+  timeout_ms?: number; // Optional: Default is 60000ms (1 minute)
+}
+```
+
+## Agent Request and Response
+
+When running an agent, you can use a simple string or a request object:
+
+```typescript
+// AgentRequest interface
+interface AgentRequest {
+  context: T[]; // Conversation context
+}
+
+// AgentResponse interface
+interface AgentResponse {
+  status: string; // "completed", "error", etc.
+  final_message: string; // The final output message
+  context: T[]; // The updated conversation context
 }
 ```
 
@@ -50,16 +66,26 @@ Agents can process string inputs or more complex request objects:
 
 ```typescript
 // Simple string input
-const result = await agent.run('Find information about quantum computing');
+const result = await agent.run("Find information about quantum computing");
 
 // Context-aware request
-const result = await agent.run({
-  context: [
-    { role: 'user', content: 'What can you tell me about quantum computing?' },
-    { role: 'assistant', content: 'Quantum computing is a type of computing that uses quantum phenomena...' },
-    { role: 'user', content: 'How does it compare to classical computing?' }
-  ]
-});
+const result = await agent.run(
+  {
+    context: [
+      {
+        role: "user",
+        content: "What can you tell me about quantum computing?",
+      },
+      {
+        role: "assistant",
+        content:
+          "Quantum computing is a type of computing that uses quantum phenomena...",
+      },
+      { role: "user", content: "How does it compare to classical computing?" },
+    ],
+  },
+  optionalTraceObject // Optional: For observability
+);
 ```
 
 ## Defining Tools
@@ -69,19 +95,19 @@ Tools allow agents to interact with external systems or perform specialized task
 ```typescript
 const tools = [
   {
-    name: 'fetchWeather',
-    description: 'Get current weather for a location',
+    name: "fetchWeather",
+    description: "Get current weather for a location",
     parameters: {
       location: {
-        type: 'string',
-        description: 'City name or coordinates'
-      }
+        type: "string",
+        description: "City name or coordinates",
+      },
     },
     callback: async ({ location }) => {
       // Implementation to fetch weather data
-      return { temperature: 72, conditions: 'sunny' };
-    }
-  }
+      return { temperature: 72, conditions: "sunny" };
+    },
+  },
 ];
 ```
 
@@ -95,14 +121,15 @@ const agent = new Agent({
   web_search: {
     enabled: true,
     config: {
-      search_context_size: 'high', // 'high', 'medium', or 'low'
+      search_context_size: "high", // 'high', 'medium', or 'low'
       user_location: {
-        type: 'approximate',
-        country: 'US',
-        city: 'San Francisco'
-      }
-    }
-  }
+        type: "approximate",
+        country: "US",
+        city: "San Francisco",
+        region: "CA",
+      },
+    },
+  },
 });
 ```
 
@@ -112,14 +139,14 @@ Agents can delegate tasks to specialized sub-agents:
 
 ```typescript
 const mathAgent = new Agent({
-  name: 'MathExpert',
-  purpose: 'Solve complex math problems',
+  name: "MathExpert",
+  purpose: "Solve complex math problems",
   // ... other config
 });
 
 const researchAgent = new Agent({
-  name: 'Researcher',
-  purpose: 'Find and summarize information',
+  name: "Researcher",
+  purpose: "Find and summarize information",
   sub_agents: [mathAgent],
   // ... other config
 });
@@ -129,6 +156,6 @@ const researchAgent = new Agent({
 
 ## Related
 
-- [Runner](/docs/reference/runner): Orchestrates agent execution
-- [Trace](/docs/reference/trace): Provides observability for agent operations
-- [Loom](/docs/reference/loom): Global configuration for OpenAI settings
+- [Runner](/docs/reference/runner): Orchestrates agent execution with enhanced context management
+- [Trace](/docs/reference/trace): Provides structured observability for agent operations
+- [Loom](/docs/reference/loom): Global configuration for OpenAI settings and API preferences

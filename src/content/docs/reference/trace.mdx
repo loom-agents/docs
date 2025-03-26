@@ -9,18 +9,17 @@ The `Trace` module provides structured logging and performance tracking for agen
 
 The module consists of two main classes:
 
-- `Trace`: Represents an individual trace entry
-- `Tracer`: Manages a hierarchy of traces
+- `Trace`: Represents an individual trace entry with hierarchical structure
+- `TraceDetails`: Interface defining the structure of trace data
 
 ## Creating a Trace
 
-Traces are typically created through the `Tracer` class:
+Traces can be created directly for standalone use:
 
 ```typescript
-import { Tracer } from 'loom-agents';
+import { Trace } from 'loom-agents';
 
-const tracer = new Tracer();
-const rootTrace = tracer.start('main-operation', { 
+const rootTrace = new Trace('main-operation', { 
   input: 'user query',
   timestamp: Date.now() 
 });
@@ -45,7 +44,7 @@ const duration = parseTrace.end();
 console.log(`Parsing took ${duration}ms`);
 ```
 
-## The Trace Interface
+## The TraceDetails Interface
 
 The `TraceDetails` interface defines the structure of trace data:
 
@@ -60,49 +59,72 @@ interface TraceDetails {
 }
 ```
 
-## Using the Tracer
+## Getting Trace Details
 
-The `Tracer` class provides methods for managing traces:
+You can retrieve the full trace data structure:
 
 ```typescript
-// Create a new tracer
-const tracer = new Tracer();
+// Get the complete trace hierarchy
+const traceData = rootTrace.getDetails();
 
-// Start the root trace
-const rootTrace = tracer.start('operation', data);
-
-// Access the current trace
-const currentTrace = tracer.getTrace();
-
-// Render the trace hierarchy
-const traceOutput = tracer.render();
-console.log(traceOutput);
+// The structure includes all child traces
+console.log(JSON.stringify(traceData, null, 2));
 ```
 
 ## Rendering Traces
 
 The `render` method produces a formatted tree representation of the trace:
 
+```typescript
+// Generate human-readable trace output
+const traceOutput = rootTrace.render();
+console.log(traceOutput);
 ```
-[trace.123e4567-e89b-12d3-a456-426614174000] operation (1200 ms) - {"input":"query"}
+
+Example output:
+
+```
+[trace.123e4567-e89b-12d3-a456-426614174000] main-operation (1200 ms) - {"input":"query"}
 └─ [trace.234e5678-e89b-12d3-a456-426614174001] parse-input (50 ms) - {"parser":"default"}
-├─ [trace.345e6789-e89b-12d3-a456-426614174002] tokenize (20 ms) - {"tokens":15}
-└─ [trace.456e7890-e89b-12d3-a456-426614174003] process (1000 ms) - {"model":"gpt-4o"}
+   ├─ [trace.345e6789-e89b-12d3-a456-426614174002] tokenize (20 ms) - {"tokens":15}
+   └─ [trace.456e7890-e89b-12d3-a456-426614174003] process (1000 ms) - {"model":"gpt-4o"}
 ```
 
-## Integration with Agents and Runners
+## Integration with Agents
 
-The trace system is integrated with [Agent](/docs/reference/agent) and [Runner](/docs/reference/runner) classes:
+The trace system is integrated with [Agent](/docs/reference/agent) for detailed operation tracking:
 
 ```typescript
-// When running an agent directly
+// Create a trace for agent operations
 const trace = new Trace('agent-execution', { agent: agent.uuid });
+
+// Pass the trace to the agent's run method
 const result = await agent.run(input, trace);
 
-// Runner automatically creates traces
+// Analyze the trace after execution
+console.log(trace.render());
+```
+
+## Integration with Runner
+
+The [Runner](/docs/reference/runner) class automatically creates and manages traces:
+
+```typescript
+// Create a runner
 const runner = new Runner(agent);
+
+// Run the agent
 const result = await runner.run(input);
-const traceOutput = runner.GetTracer().render();
+
+// Get the runs trace
+const trace = result.trace;
+
+// Or get the last trace for the runner
+const lastTrace = runner.getLastTrace();
+console.log(lastTrace.render());
+
+// Or get all traces the runner has made
+const allTraces = runner.getTraces();
 ```
 
 ## Performance Analysis
@@ -112,10 +134,6 @@ Traces can be used to identify performance bottlenecks:
 ```typescript
 // Get total execution time
 const totalTime = rootTrace.end(); // Returns total duration in ms
-
-// Analyze time spent in operations
-const traceOutput = tracer.render();
-console.log(traceOutput); // Shows duration for each operation
 ```
 
 ## Related

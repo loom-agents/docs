@@ -99,7 +99,7 @@ console.log(result.final_message);
 ## Using Traces for Debugging
 
 ```typescript
-import { Agent, Runner, Tracer } from 'loom-agents';
+import { Agent, Runner } from 'loom-agents';
 
 // Create agent and runner
 const agent = new Agent({ /*...*/ });
@@ -109,8 +109,11 @@ const runner = new Runner(agent);
 const result = await runner.run('Process this data');
 
 // Get and display the trace
-const tracer = runner.GetTracer();
-console.log(tracer.render());
+const lastTrace = runner.getLastTrace();
+console.log(lastTrace.render());
+
+// Or get all traces from this runner
+const allTraces = runner.getTraces();
 ```
 
 ## Web Search Agent
