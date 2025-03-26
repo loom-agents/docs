@@ -7,7 +7,7 @@ Read the [docs](https://loom-agents.github.io/docs/)
 ## Get Started
 
 ```bash
-$ npm i loom-agents
+$ bun i loom-agents
 ```
 
 ```typescript
