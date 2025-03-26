@@ -28,6 +28,7 @@ export default defineConfig({
           label: "Class Reference",
           items: [
             { label: "Loom", slug: "reference/loom" },
+            { label: "MCP", slug: "reference/mcp" },
             { label: "Agent", slug: "reference/agent" },
             { label: "Runner", slug: "reference/runner" },
             { label: "Trace", slug: "reference/trace" },

@@ -1,0 +1,121 @@
+---
+title: MCPServer  
+description: Base class for connecting to Model Context Protocol-compatible tool servers over SSE or stdio
+---
+
+The `MCPServer` system provides a standardized way to connect to tool servers that implement the [Model Context Protocol (MCP)](https://modelcontext.org). It supports both **SSE (Server-Sent Events)** and **stdio (standard input/output)** transports.
+
+## Creating a Server Connection
+
+There are two built-in classes for connection:
+
+- `MCPServerSSE`: Connects to a remote MCP server using Server-Sent Events.
+- `MCPServerStdio`: Launches and communicates with a local MCP server using standard input/output.
+
+```ts
+import { MCPServerSSE, MCPServerStdio } from "loom-agents/mcp";
+
+// Using SSE
+const mcpSSE = new MCPServerSSE(new URL("http://localhost:3000/mcp"));
+
+// Using stdio
+const mcpStdio = new MCPServerStdio("node", ["./tool-server.js"]);
+```
+
+## Listing Available Tools
+
+Each server may expose a set of tools that can be queried:
+
+```ts
+const tools = await mcpSSE.getTools();
+console.log(tools);
+// {
+//   tools: [
+//     {
+//       name: "calculate-bmi",
+//       inputSchema: {
+//         type: "object",
+//         properties: [Object],
+//         required: [Array],
+//         additionalProperties: false,
+//         $schema: "http://json-schema.org/draft-07/schema#",
+//       },
+//     },
+//     {
+//       name: "fetch-weather",
+//       inputSchema: {
+//         type: "object",
+//         properties: [Object],
+//         required: [Array],
+//         additionalProperties: false,
+//         $schema: "http://json-schema.org/draft-07/schema#",
+//       },
+//     },
+//   ];
+// }
+```
+
+This will automatically connect the client if it hasn’t already.
+
+## Calling a Tool
+
+Once connected, tools can be called directly by name:
+
+```ts
+const result = await mcpSSE.callTool({
+  name: "calculate-bmi",
+  arguments: {
+    "weightKg":70,
+    "heightM":1.75
+  }
+});
+
+console.log(result);
+// {
+//   content: [
+//     {
+//       type: "text",
+//       text: "22.857142857142858",
+//     },
+//   ];
+// }
+
+// Note, Loom parses MCP results for errors and sends the content / output off `.content`
+// [
+//  {
+//    type: "text",
+//    text: "22.857142857142858",
+//  },
+//]
+```
+
+## Extending MCPServer
+
+If you want to implement a custom transport or extend tool behaviors, you can subclass `MCPServerBase`.
+
+```ts
+class CustomMCPServer extends MCPServerBase {
+  constructor(myTransport: CustomTransport) {
+    super(myTransport);
+  }
+
+  // Custom behavior
+}
+```
+
+## Internals
+
+The `MCPServerBase` manages client connection state and handles listing and calling tools. It lazily initializes the client only when needed:
+
+```ts
+await this.client.connect(this.transport);
+```
+
+It caches tool metadata after the first call to `getTools()` to avoid redundant lookups.
+
+## Related
+
+- [Agent](/docs/reference/agent): Interacts with tools through an MCPServer
+- [Tool Definition](/docs/reference/tool): Learn how tools are defined and exposed
+- [Trace](/docs/reference/trace): Structured tracking of tool calls and agent interactions
+- [Loom Configuration](/docs/reference/loom): Customize global AI behavior and context handling

@@ -37,6 +37,7 @@ interface AgentConfig {
   sub_agents?: Agent[]; // Optional: Sub-agents that can be called
   tools?: ToolCall[]; // Optional: Tools the agent can use
   model?: string; // Optional: Default is 'gpt-4o'
+  mcp_servers?: (MCPServerSSE | MCPServerStdio)[];
   web_search?: WebSearchConfig; // Optional: Web search configuration
   timeout_ms?: number; // Optional: Default is 60000ms (1 minute)
 }
@@ -87,6 +88,32 @@ const result = await agent.run(
   optionalTraceObject // Optional: For observability
 );
 ```
+
+## Working with MCP Servers
+
+Loom supports integrating with external tools using the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/introduction), a standard that allows third-party applications and services to provide context and capabilities to LLMs.
+
+You can use two types of MCP connections:
+
+- [`MCPServerSSE`](../reference/mcp) – Connects to an MCP tool server over **Server-Sent Events**
+- [`MCPServerStdio`](../reference/mcp) – Connects to a local MCP tool server via **stdio**
+
+### Example: Connecting to MCP Servers
+
+```ts
+import { Agent, MCPServerSSE, MCPServerStdio } from "loom-agents";
+
+const researchAgent = new Agent({
+  name: "MCP Tool Runner",
+  purpose: "Run a connected MCP tool!",
+  mcp_servers: [
+    new MCPServerSSE(new URL("http://localhost:3001/sse")),
+    new MCPServerStdio("bun", ["stdio.ts"]),
+  ],
+});
+```
+
+With this configuration, your agent can call tools exposed by the connected MCP servers seamlessly.
 
 ## Defining Tools
 
