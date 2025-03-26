@@ -1,18 +1,10 @@
 /* LOOM Dark Theme */
 :root {
-<<<<<<< HEAD
   --sl-color-accent-low: #1a0b2d;
   --sl-color-accent: #6e4aff;
   --sl-color-accent-high: #c2aaff;
 
   --sl-color-white: #ffffff;
-=======
-  --sl-color-accent-low: #1a0b2d; /* Deep purple background accent */
-  --sl-color-accent: #6e4aff; /* Playful bright violet */
-  --sl-color-accent-high: #c2aaff; /* Softer lavender highlight */
-
-  --sl-color-white: #ffffff; /* Text on dark */
->>>>>>> 7276364 (init docs)
   --sl-color-gray-1: #e5f0fc;
   --sl-color-gray-2: #b9c6e2;
   --sl-color-gray-3: #8a99b9;
@@ -24,19 +16,11 @@
 
 /* LOOM Light Theme */
 :root[data-theme="light"] {
-<<<<<<< HEAD
   --sl-color-accent-low: #e5f0ff;
   --sl-color-accent: #4a80ff;
   --sl-color-accent-high: #0e3edc;
 
   --sl-color-white: #111218;
-=======
-  --sl-color-accent-low: #e5f0ff; /* Soft light blue */
-  --sl-color-accent: #4a80ff; /* Vibrant playful blue */
-  --sl-color-accent-high: #0e3edc; /* Deep blue accent */
-
-  --sl-color-white: #111218; /* Text on light */
->>>>>>> 7276364 (init docs)
   --sl-color-gray-1: #1b1d26;
   --sl-color-gray-2: #2c2f3c;
   --sl-color-gray-3: #58627a;
