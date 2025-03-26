@@ -4,9 +4,11 @@ import starlight from "@astrojs/starlight";
 
 // https://astro.build/config
 export default defineConfig({
+  site: 'https://loom-agents.github.io',
   integrations: [
     starlight({
       title: "Loom",
+      favicon: "./public/favicon.ico",
       customCss: [
         './src/styles/theme.css',
       ],
