@@ -25,14 +25,18 @@ export default defineConfig({
           ],
         },
         {
-          label: "Class Reference",
+          label: "Agents",
           items: [
-            { label: "Loom", slug: "reference/loom" },
-            { label: "MCP", slug: "reference/mcp" },
-            { label: "Agent", slug: "reference/agent" },
-            { label: "Runner", slug: "reference/runner" },
-            { label: "Trace", slug: "reference/trace" },
+            { label: "Loom", slug: "agents/loom" },
+            { label: "MCP", slug: "agents/mcp" },
+            { label: "Agent", slug: "agents/agent" },
+            { label: "Runner", slug: "agents/runner" },
+            { label: "Trace", slug: "agents/trace" },
           ],
+        },
+        {
+          label: "Schema",
+          items: [{ label: "Coming Soon", slug: "schema/coming-soon" }],
         },
         {
           label: "AI Reference",

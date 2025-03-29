@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reactive Intelligent Sprite Cutter</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f0f0f0;
+      }
+      h1 {
+        color: #333;
+        text-align: center;
+      }
+      .controls {
+        margin-bottom: 20px;
+        padding: 15px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+      label {
+        display: block;
+        margin: 10px 0 5px;
+      }
+      input[type="file"],
+      input[type="number"],
+      input[type="range"] {
+        margin-bottom: 10px;
+      }
+      .tool-btn {
+        margin-right: 10px;
+        padding: 5px 10px;
+        cursor: pointer;
+      }
+      .tool-btn.active {
+        background-color: #007bff;
+        color: white;
+      }
+      .display-area {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        flex-wrap: nowrap;
+      }
+      .canvas-container {
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        padding: 10px;
+      }
+      canvas {
+        border: 1px solid #ddd;
+        display: block;
+        max-width: 100%;
+      }
+      .sprite-grid {
+        display: grid;
+        gap: 15px;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        margin-top: 20px;
+      }
+      .sprite-cell {
+        border: 1px solid #ddd;
+        background-color: #f9f9f9;
+        border-radius: 4px;
+        padding: 10px;
+        text-align: center;
+      }
+      .sprite-cell canvas {
+        margin: 0 auto;
+        display: block;
+      }
+      button {
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-top: 10px;
+      }
+      button:hover {
+        background-color: #45a049;
+      }
+      .slider-container {
+        margin: 10px 0;
+      }
+      .slider-label {
+        display: flex;
+        justify-content: space-between;
+      }
+      .coordinates-display {
+        margin-top: 10px;
+        font-size: 14px;
+        color: #555;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Reactive Intelligent Sprite Cutter</h1>
+
+    <div class="controls">
+      <label for="spritesheet">Upload Sprite Sheet Image:</label>
+      <input type="file" id="spritesheet" accept="image/*" />
+
+      <!-- New option to remove background with anti-aliasing -->
+      <label>
+        <input type="checkbox" id="remove-bg-option" />
+        Remove Background &amp; Anti-Alias
+      </label>
+
+      <!-- Mode selection -->
+      <div>
+        <button id="auto-detect-btn" class="tool-btn">
+          Auto-Detect Sprites
+        </button>
+        <button id="custom-detect-btn" class="tool-btn">
+          Custom Row Detection
+        </button>
+        <button id="manual-crop-btn" class="tool-btn">Manual Crop Mode</button>
+        <button id="reset-btn">Reset</button>
+      </div>
+
+      <!-- Auto-detect Settings -->
+      <div id="detection-settings" style="display: none; margin-top: 15px">
+        <h3>Detection Settings</h3>
+        <div class="slider-container">
+          <label for="sensitivity">Background Sensitivity:</label>
+          <input type="range" id="sensitivity" min="1" max="100" value="20" />
+          <div class="slider-label">
+            <span>Low</span>
+            <span>High</span>
+          </div>
+        </div>
+        <div class="slider-container">
+          <label for="min-size">Minimum Sprite Size (%):</label>
+          <input type="range" id="min-size" min="1" max="50" value="5" />
+          <div class="slider-label">
+            <span>Small</span>
+            <span>Large</span>
+          </div>
+        </div>
+        <div class="slider-container">
+          <label for="expected-sprites">Expected Number of Sprites:</label>
+          <input
+            type="number"
+            id="expected-sprites"
+            min="1"
+            max="100"
+            value="9"
+          />
+        </div>
+        <div class="slider-container">
+          <label for="auto-sprite-padding">Sprite Padding (px):</label>
+          <input
+            type="number"
+            id="auto-sprite-padding"
+            min="0"
+            max="20"
+            value="0"
+          />
+          <div class="slider-label">
+            <span>None</span>
+            <span>Maximum</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Custom Row Settings -->
+      <div id="custom-row-settings" style="display: none; margin-top: 15px">
+        <h3>Custom Row Detection</h3>
+        <p>This mode will detect sprites row by row for uneven placements.</p>
+        <div class="slider-container">
+          <label for="row-count">Number of Rows:</label>
+          <input type="number" id="row-count" min="1" max="10" value="3" />
+        </div>
+        <div class="slider-container">
+          <label for="column-count">Approx. Columns per Row:</label>
+          <input type="number" id="column-count" min="1" max="10" value="3" />
+        </div>
+        <div class="slider-container">
+          <label for="sprite-padding">Sprite Padding (px):</label>
+          <input type="number" id="sprite-padding" min="0" max="20" value="0" />
+          <div class="slider-label">
+            <span>None</span>
+            <span>Maximum</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Manual Crop Settings -->
+      <div id="manual-crop-settings" style="display: none; margin-top: 15px">
+        <h3>Manual Crop Mode</h3>
+        <p>Click and drag on the original image to define sprite boundaries</p>
+        <div id="crop-controls">
+          <button id="add-crop-btn">Add Selection</button>
+          <button id="clear-crops-btn">Clear Selections</button>
+        </div>
+        <div class="slider-container">
+          <label for="manual-sprite-padding">Sprite Padding (px):</label>
+          <input
+            type="number"
+            id="manual-sprite-padding"
+            min="0"
+            max="20"
+            value="0"
+          />
+          <div class="slider-label">
+            <span>None</span>
+            <span>Maximum</span>
+          </div>
+        </div>
+        <div id="crop-coordinates" class="coordinates-display"></div>
+      </div>
+    </div>
+
+    <!-- Three canvases in a row -->
+    <div class="display-area">
+      <div class="canvas-container">
+        <h3>Original Image</h3>
+        <canvas id="original-canvas"></canvas>
+      </div>
+      <div class="canvas-container">
+        <h3>Detection Preview</h3>
+        <canvas id="result-canvas"></canvas>
+      </div>
+      <div class="canvas-container">
+        <h3>Cutout Visualization</h3>
+        <canvas id="cutout-canvas"></canvas>
+      </div>
+    </div>
+
+    <div
+      id="manual-adjustment"
+      style="margin-top: 20px; border-top: 1px solid #ddd; padding-top: 15px"
+    >
+      <h3>Fine-tune Sprite Boundaries</h3>
+      <p>Use the handles to adjust any detected sprite rectangle</p>
+      <button id="apply-adjustments-btn" disabled>Apply Adjustments</button>
+      <div id="adjustment-controls" style="margin-top: 10px; display: none">
+        <button id="save-adjustment-btn">Save Adjustment</button>
+        <button id="cancel-adjustment-btn">Cancel</button>
+      </div>
+    </div>
+
+    <h3>Extracted Sprites <span id="sprite-count">(0)</span></h3>
+    <button id="download-all-btn" disabled>Download All Sprites</button>
+    <div id="sprites-container" class="sprite-grid"></div>
+
+    <script>
+      // Global variables
+      let originalImage = null;
+      let detectedSprites = [];
+      let activeMode = null; // "auto-detect", "custom-row", "manual-crop"
+      let cropSelections = [];
+      let currentCrop = null;
+      let isDragging = false;
+      let selectedSpriteIndex = -1;
+      let adjustingSprite = false;
+      let resizeHandleSize = 8;
+      let activeHandle = null;
+      let detectedBgColor = null; // Global background color for anti-aliasing
+
+      // Canvas elements and contexts
+      let originalCanvas = document.getElementById("original-canvas");
+      let originalCtx = originalCanvas.getContext("2d");
+      let resultCanvas = document.getElementById("result-canvas");
+      let resultCtx = resultCanvas.getContext("2d");
+      let cutoutCanvas = document.getElementById("cutout-canvas");
+      let cutoutCtx = cutoutCanvas.getContext("2d");
+
+      // Mode buttons
+      const autoBtn = document.getElementById("auto-detect-btn");
+      const customBtn = document.getElementById("custom-detect-btn");
+      const manualBtn = document.getElementById("manual-crop-btn");
+      const resetBtn = document.getElementById("reset-btn");
+
+      // Settings panels
+      const detectionSettings = document.getElementById("detection-settings");
+      const customRowSettings = document.getElementById("custom-row-settings");
+      const manualCropSettings = document.getElementById(
+        "manual-crop-settings"
+      );
+
+      // Event listeners for file upload
+      document
+        .getElementById("spritesheet")
+        .addEventListener("change", loadImage);
+
+      // Mode selection listeners
+      autoBtn.addEventListener("click", () => {
+        setActiveMode("auto-detect");
+        detectionSettings.style.display = "block";
+        customRowSettings.style.display = "none";
+        manualCropSettings.style.display = "none";
+        setToolButtonActive(autoBtn);
+        if (originalImage) detectSprites();
+      });
+      customBtn.addEventListener("click", () => {
+        setActiveMode("custom-row");
+        detectionSettings.style.display = "none";
+        customRowSettings.style.display = "block";
+        manualCropSettings.style.display = "none";
+        setToolButtonActive(customBtn);
+        if (originalImage) detectByRows();
+      });
+      manualBtn.addEventListener("click", () => {
+        setActiveMode("manual-crop");
+        detectionSettings.style.display = "none";
+        customRowSettings.style.display = "none";
+        manualCropSettings.style.display = "block";
+        setToolButtonActive(manualBtn);
+        setupManualCropListeners();
+      });
+      resetBtn.addEventListener("click", resetAll);
+
+      // Button listeners for download and adjustments
+      document
+        .getElementById("download-all-btn")
+        .addEventListener("click", downloadAllSprites);
+      document
+        .getElementById("apply-adjustments-btn")
+        .addEventListener("click", applyAdjustments);
+      document
+        .getElementById("save-adjustment-btn")
+        .addEventListener("click", saveAdjustment);
+      document
+        .getElementById("cancel-adjustment-btn")
+        .addEventListener("click", cancelAdjustment);
+      document
+        .getElementById("add-crop-btn")
+        .addEventListener("click", addCropSelection);
+      document
+        .getElementById("clear-crops-btn")
+        .addEventListener("click", clearCropSelections);
+
+      // Reactive settings update events
+      document.getElementById("sensitivity").addEventListener("input", () => {
+        if (activeMode === "auto-detect" && originalImage) detectSprites();
+      });
+      document.getElementById("min-size").addEventListener("input", () => {
+        if (activeMode === "auto-detect" && originalImage) detectSprites();
+      });
+      document
+        .getElementById("expected-sprites")
+        .addEventListener("input", () => {
+          if (activeMode === "auto-detect" && originalImage) detectSprites();
+        });
+      document
+        .getElementById("auto-sprite-padding")
+        .addEventListener("input", () => {
+          if (activeMode === "auto-detect" && originalImage) detectSprites();
+        });
+      document.getElementById("row-count").addEventListener("input", () => {
+        if (activeMode === "custom-row" && originalImage) detectByRows();
+      });
+      document.getElementById("column-count").addEventListener("input", () => {
+        if (activeMode === "custom-row" && originalImage) detectByRows();
+      });
+      document
+        .getElementById("sprite-padding")
+        .addEventListener("input", () => {
+          if (activeMode === "custom-row" && originalImage) detectByRows();
+        });
+
+      // Adjustment canvas events
+      resultCanvas.addEventListener("mousedown", handleAdjustmentMouseDown);
+      resultCanvas.addEventListener("mousemove", handleAdjustmentMouseMove);
+      resultCanvas.addEventListener("mouseup", handleAdjustmentMouseUp);
+      resultCanvas.addEventListener("mouseout", handleAdjustmentMouseOut);
+
+      // Load uploaded image
+      function loadImage(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function (event) {
+          originalImage = new Image();
+          originalImage.onload = function () {
+            drawOriginalImage();
+            resetAll();
+          };
+          originalImage.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+
+      // Draw original image on canvas and adjust others accordingly
+      function drawOriginalImage() {
+        if (!originalImage) return;
+        originalCanvas.width = originalImage.width;
+        originalCanvas.height = originalImage.height;
+        resultCanvas.width = originalImage.width;
+        resultCanvas.height = originalImage.height;
+        cutoutCanvas.width = originalImage.width;
+        cutoutCanvas.height = originalImage.height;
+
+        originalCtx.clearRect(
+          0,
+          0,
+          originalCanvas.width,
+          originalCanvas.height
+        );
+        originalCtx.drawImage(originalImage, 0, 0);
+
+        resultCtx.clearRect(0, 0, resultCanvas.width, resultCanvas.height);
+        resultCtx.drawImage(originalImage, 0, 0);
+
+        cutoutCtx.clearRect(0, 0, cutoutCanvas.width, cutoutCanvas.height);
+      }
+
+      // Set active mode and reset state if needed
+      function setActiveMode(mode) {
+        if (activeMode === "manual-crop") {
+          removeManualCropListeners();
+        }
+        activeMode = mode;
+        document.getElementById("apply-adjustments-btn").disabled = true;
+        document.getElementById("download-all-btn").disabled = true;
+        resultCtx.clearRect(0, 0, resultCanvas.width, resultCanvas.height);
+        resultCtx.drawImage(originalImage, 0, 0);
+        detectedSprites = [];
+        cropSelections = [];
+        currentCrop = null;
+        document.getElementById("sprites-container").innerHTML = "";
+        document.getElementById("sprite-count").textContent = "(0)";
+      }
+
+      function setToolButtonActive(activeButton) {
+        [autoBtn, customBtn, manualBtn].forEach((btn) =>
+          btn.classList.remove("active")
+        );
+        activeButton.classList.add("active");
+      }
+
+      function resetAll() {
+        detectionSettings.style.display = "none";
+        customRowSettings.style.display = "none";
+        manualCropSettings.style.display = "none";
+        activeMode = null;
+        [autoBtn, customBtn, manualBtn].forEach((btn) =>
+          btn.classList.remove("active")
+        );
+        if (originalImage) {
+          resultCtx.clearRect(0, 0, resultCanvas.width, resultCanvas.height);
+          resultCtx.drawImage(originalImage, 0, 0);
+        }
+        detectedSprites = [];
+        cropSelections = [];
+        currentCrop = null;
+        document.getElementById("sprites-container").innerHTML = "";
+        document.getElementById("sprite-count").textContent = "(0)";
+        document.getElementById("apply-adjustments-btn").disabled = true;
+        document.getElementById("download-all-btn").disabled = true;
+        removeManualCropListeners();
+      }
+
+      // ---------- Anti-Aliasing Background Removal ----------
+      function removeBackgroundAndSmooth(imageData, bgColor, threshold = 50) {
+        const data = imageData.data;
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i];
+          const g = data[i + 1];
+          const b = data[i + 2];
+          const distance = Math.sqrt(
+            (r - bgColor.r) ** 2 + (g - bgColor.g) ** 2 + (b - bgColor.b) ** 2
+          );
+          if (distance < threshold) {
+            const alphaFactor = distance / threshold; // between 0 and 1
+            data[i + 3] = data[i + 3] * alphaFactor;
+          }
+        }
+        return imageData;
+      }
+
+      // ---------- Auto-detect sprite functions ----------
+      function detectSprites() {
+        if (!originalImage) {
+          alert("Please upload an image first");
+          return;
+        }
+        const sensitivity = parseInt(
+          document.getElementById("sensitivity").value
+        );
+        const minSizePercent = parseInt(
+          document.getElementById("min-size").value
+        );
+        const expectedSprites = parseInt(
+          document.getElementById("expected-sprites").value
+        );
+
+        const tempCanvas = document.createElement("canvas");
+        tempCanvas.width = originalImage.width;
+        tempCanvas.height = originalImage.height;
+        const tempCtx = tempCanvas.getContext("2d");
+        tempCtx.drawImage(originalImage, 0, 0);
+        const imageData = tempCtx.getImageData(
+          0,
+          0,
+          tempCanvas.width,
+          tempCanvas.height
+        );
+        const data = imageData.data;
+
+        // Detect background color and store globally for anti-aliasing
+        const backgroundColor = detectBackgroundColor(
+          data,
+          tempCanvas.width,
+          tempCanvas.height
+        );
+        detectedBgColor = backgroundColor;
+
+        const binaryMap = createBinaryMap(
+          data,
+          backgroundColor,
+          sensitivity,
+          tempCanvas.width,
+          tempCanvas.height
+        );
+        const connectedComponents = findConnectedComponents(
+          binaryMap,
+          tempCanvas.width,
+          tempCanvas.height
+        );
+        const minSize =
+          (tempCanvas.width * tempCanvas.height * minSizePercent) / 100;
+        const filteredComponents = connectedComponents.filter(
+          (comp) => comp.pixels.length > minSize
+        );
+        filteredComponents.sort((a, b) => b.pixels.length - a.pixels.length);
+        const topComponents =
+          expectedSprites > 0
+            ? filteredComponents.slice(0, expectedSprites)
+            : filteredComponents;
+
+        detectedSprites = topComponents.map((comp) => {
+          let minX = tempCanvas.width,
+            minY = tempCanvas.height,
+            maxX = 0,
+            maxY = 0;
+          for (const pixel of comp.pixels) {
+            const x = pixel % tempCanvas.width;
+            const y = Math.floor(pixel / tempCanvas.width);
+            minX = Math.min(minX, x);
+            minY = Math.min(minY, y);
+            maxX = Math.max(maxX, x);
+            maxY = Math.max(maxY, y);
+          }
+          const padding = 2;
+          minX = Math.max(0, minX - padding);
+          minY = Math.max(0, minY - padding);
+          maxX = Math.min(tempCanvas.width - 1, maxX + padding);
+          maxY = Math.min(tempCanvas.height - 1, maxY + padding);
+          return {
+            x: minX,
+            y: minY,
+            width: maxX - minX + 1,
+            height: maxY - minY + 1,
+          };
+        });
+
+        detectedSprites.sort((a, b) => {
+          const rowTolerance = tempCanvas.height / 20;
+          if (Math.abs(a.y - b.y) < rowTolerance) return a.x - b.x;
+          return a.y - b.y;
+        });
+
+        drawBoundingBoxes();
+        document.getElementById("apply-adjustments-btn").disabled = false;
+        extractSprites();
+        drawCutoutVisualization();
+      }
+
+      function detectBackgroundColor(data, width, height) {
+        const samplePoints = [
+          { x: 0, y: 0 },
+          { x: width - 1, y: 0 },
+          { x: 0, y: height - 1 },
+          { x: width - 1, y: height - 1 },
+        ];
+        const numRandomSamples = 20;
+        for (let i = 0; i < numRandomSamples; i++) {
+          samplePoints.push({
+            x: Math.floor(Math.random() * width),
+            y: Math.floor(Math.random() * height),
+          });
+        }
+        const colorSamples = samplePoints.map((point) => {
+          const index = (point.y * width + point.x) * 4;
+          return {
+            r: data[index],
+            g: data[index + 1],
+            b: data[index + 2],
+            a: data[index + 3],
+          };
+        });
+        const colorCounts = {};
+        for (const color of colorSamples) {
+          const quantized = `${Math.floor(color.r / 10) * 10},${
+            Math.floor(color.g / 10) * 10
+          },${Math.floor(color.b / 10) * 10}`;
+          colorCounts[quantized] = (colorCounts[quantized] || 0) + 1;
+        }
+        let mostCommonColor = null,
+          maxCount = 0;
+        for (const [color, count] of Object.entries(colorCounts)) {
+          if (count > maxCount) {
+            maxCount = count;
+            mostCommonColor = color;
+          }
+        }
+        const [r, g, b] = mostCommonColor.split(",").map(Number);
+        return { r, g, b };
+      }
+
+      function createBinaryMap(data, bgColor, sensitivity, width, height) {
+        const threshold = 5 + sensitivity / 5;
+        const binaryMap = new Uint8Array(width * height);
+        for (let y = 0; y < height; y++) {
+          for (let x = 0; x < width; x++) {
+            const index = (y * width + x) * 4;
+            if (data[index + 3] < 128) {
+              binaryMap[y * width + x] = 0;
+              continue;
+            }
+            const dr = Math.abs(data[index] - bgColor.r);
+            const dg = Math.abs(data[index + 1] - bgColor.g);
+            const db = Math.abs(data[index + 2] - bgColor.b);
+            const distance = Math.sqrt(dr * dr + dg * dg + db * db);
+            binaryMap[y * width + x] = distance > threshold ? 1 : 0;
+          }
+        }
+        return binaryMap;
+      }
+
+      function findConnectedComponents(binaryMap, width, height) {
+        const visited = new Uint8Array(binaryMap.length);
+        const components = [];
+        for (let y = 0; y < height; y++) {
+          for (let x = 0; x < width; x++) {
+            const index = y * width + x;
+            if (binaryMap[index] === 1 && visited[index] === 0) {
+              const component = { pixels: [] };
+              const queue = [index];
+              visited[index] = 1;
+              while (queue.length > 0) {
+                const current = queue.shift();
+                component.pixels.push(current);
+                const cx = current % width;
+                const cy = Math.floor(current / width);
+                const neighbors = [
+                  { x: cx + 1, y: cy },
+                  { x: cx - 1, y: cy },
+                  { x: cx, y: cy + 1 },
+                  { x: cx, y: cy - 1 },
+                ];
+                for (const neighbor of neighbors) {
+                  if (
+                    neighbor.x >= 0 &&
+                    neighbor.x < width &&
+                    neighbor.y >= 0 &&
+                    neighbor.y < height
+                  ) {
+                    const neighborIndex = neighbor.y * width + neighbor.x;
+                    if (
+                      binaryMap[neighborIndex] === 1 &&
+                      visited[neighborIndex] === 0
+                    ) {
+                      queue.push(neighborIndex);
+                      visited[neighborIndex] = 1;
+                    }
+                  }
+                }
+              }
+              components.push(component);
+            }
+          }
+        }
+        return components;
+      }
+
+      // ---------- Custom Row Detection Functions ----------
+      function detectByRows() {
+        if (!originalImage) {
+          alert("Please upload an image first");
+          return;
+        }
+        const rowCount = parseInt(document.getElementById("row-count").value);
+        const columnCount = parseInt(
+          document.getElementById("column-count").value
+        );
+        if (rowCount <= 0 || columnCount <= 0) {
+          alert("Please enter valid row and column counts");
+          return;
+        }
+        const tempCanvas = document.createElement("canvas");
+        tempCanvas.width = originalImage.width;
+        tempCanvas.height = originalImage.height;
+        const tempCtx = tempCanvas.getContext("2d");
+        tempCtx.drawImage(originalImage, 0, 0);
+        const imageData = tempCtx.getImageData(
+          0,
+          0,
+          tempCanvas.width,
+          tempCanvas.height
+        );
+        const data = imageData.data;
+        const backgroundColor = detectBackgroundColor(
+          data,
+          tempCanvas.width,
+          tempCanvas.height
+        );
+        detectedBgColor = backgroundColor;
+        const rowBoundaries = findRowBoundaries(
+          data,
+          backgroundColor,
+          tempCanvas.width,
+          tempCanvas.height,
+          rowCount
+        );
+        detectedSprites = [];
+        for (let i = 0; i < rowBoundaries.length - 1; i++) {
+          const rowTop = rowBoundaries[i];
+          const rowBottom = rowBoundaries[i + 1];
+          const rowHeight = rowBottom - rowTop;
+          const columnBoundaries = findColumnBoundaries(
+            data,
+            backgroundColor,
+            tempCanvas.width,
+            tempCanvas.height,
+            rowTop,
+            rowBottom,
+            columnCount
+          );
+          for (let j = 0; j < columnBoundaries.length - 1; j++) {
+            const colLeft = columnBoundaries[j];
+            const colRight = columnBoundaries[j + 1];
+            detectedSprites.push({
+              x: colLeft,
+              y: rowTop,
+              width: colRight - colLeft,
+              height: rowHeight,
+            });
+          }
+        }
+        drawBoundingBoxes();
+        document.getElementById("apply-adjustments-btn").disabled = false;
+        extractSprites();
+        drawCutoutVisualization();
+      }
+
+      function findRowBoundaries(data, bgColor, width, height, rowCount) {
+        const rowScores = new Array(height).fill(0);
+        for (let y = 0; y < height; y++) {
+          let rowScore = 0;
+          for (let x = 0; x < width; x++) {
+            const index = (y * width + x) * 4;
+            if (data[index + 3] < 128) continue;
+            const dr = Math.abs(data[index] - bgColor.r);
+            const dg = Math.abs(data[index + 1] - bgColor.g);
+            const db = Math.abs(data[index + 2] - bgColor.b);
+            const distance = Math.sqrt(dr * dr + dg * dg + db * db);
+            rowScore += distance;
+          }
+          rowScores[y] = rowScore / width;
+        }
+        const smoothedScores = new Array(height).fill(0);
+        const kernelSize = 5;
+        for (let y = 0; y < height; y++) {
+          let sum = 0,
+            count = 0;
+          for (let k = -kernelSize; k <= kernelSize; k++) {
+            const yy = y + k;
+            if (yy >= 0 && yy < height) {
+              sum += rowScores[yy];
+              count++;
+            }
+          }
+          smoothedScores[y] = sum / count;
+        }
+        const localMinima = [];
+        for (let y = 1; y < height - 1; y++) {
+          if (
+            smoothedScores[y] < smoothedScores[y - 1] &&
+            smoothedScores[y] < smoothedScores[y + 1]
+          ) {
+            localMinima.push({ y, score: smoothedScores[y] });
+          }
+        }
+        localMinima.sort((a, b) => a.score - b.score);
+        const rowSeparators = [0];
+        if (localMinima.length > 0) {
+          const separatorCount = rowCount - 1;
+          const selectedMinima = localMinima.slice(0, separatorCount);
+          selectedMinima.sort((a, b) => a.y - b.y);
+          selectedMinima.forEach((minima) => rowSeparators.push(minima.y));
+        }
+        rowSeparators.push(height);
+        return rowSeparators;
+      }
+
+      function findColumnBoundaries(
+        data,
+        bgColor,
+        width,
+        height,
+        rowTop,
+        rowBottom,
+        columnCount
+      ) {
+        const colScores = new Array(width).fill(0);
+        const rowHeight = rowBottom - rowTop;
+        for (let x = 0; x < width; x++) {
+          let colScore = 0;
+          for (let y = rowTop; y < rowBottom; y++) {
+            const index = (y * width + x) * 4;
+            if (data[index + 3] < 128) continue;
+            const dr = Math.abs(data[index] - bgColor.r);
+            const dg = Math.abs(data[index + 1] - bgColor.g);
+            const db = Math.abs(data[index + 2] - bgColor.b);
+            const distance = Math.sqrt(dr * dr + dg * dg + db * db);
+            colScore += distance;
+          }
+          colScores[x] = colScore / rowHeight;
+        }
+        const smoothedScores = new Array(width).fill(0);
+        const kernelSize = 5;
+        for (let x = 0; x < width; x++) {
+          let sum = 0,
+            count = 0;
+          for (let k = -kernelSize; k <= kernelSize; k++) {
+            const xx = x + k;
+            if (xx >= 0 && xx < width) {
+              sum += colScores[xx];
+              count++;
+            }
+          }
+          smoothedScores[x] = sum / count;
+        }
+        const localMinima = [];
+        for (let x = 1; x < width - 1; x++) {
+          if (
+            smoothedScores[x] < smoothedScores[x - 1] &&
+            smoothedScores[x] < smoothedScores[x + 1]
+          ) {
+            localMinima.push({ x, score: smoothedScores[x] });
+          }
+        }
+        localMinima.sort((a, b) => a.score - b.score);
+        const colSeparators = [0];
+        if (localMinima.length > 0) {
+          const separatorCount = columnCount - 1;
+          const selectedMinima = localMinima.slice(0, separatorCount);
+          selectedMinima.sort((a, b) => a.x - b.x);
+          selectedMinima.forEach((minima) => colSeparators.push(minima.x));
+        }
+        colSeparators.push(width);
+        return colSeparators;
+      }
+
+      // ---------- Manual Crop Functions ----------
+      function setupManualCropListeners() {
+        originalCanvas.addEventListener("mousedown", handleMouseDown);
+        originalCanvas.addEventListener("mousemove", handleMouseMove);
+        originalCanvas.addEventListener("mouseup", handleMouseUp);
+        originalCanvas.addEventListener("mouseout", handleMouseOut);
+      }
+      function removeManualCropListeners() {
+        originalCanvas.removeEventListener("mousedown", handleMouseDown);
+        originalCanvas.removeEventListener("mousemove", handleMouseMove);
+        originalCanvas.removeEventListener("mouseup", handleMouseUp);
+        originalCanvas.removeEventListener("mouseout", handleMouseOut);
+      }
+      function handleMouseDown(e) {
+        if (activeMode !== "manual-crop") return;
+        const rect = originalCanvas.getBoundingClientRect();
+        const scaleX = originalCanvas.width / rect.width;
+        const scaleY = originalCanvas.height / rect.height;
+        const x = (e.clientX - rect.left) * scaleX;
+        const y = (e.clientY - rect.top) * scaleY;
+        currentCrop = { startX: x, startY: y, endX: x, endY: y };
+        isDragging = true;
+        drawCropSelection();
+      }
+      function handleMouseMove(e) {
+        if (!isDragging || !currentCrop) return;
+        const rect = originalCanvas.getBoundingClientRect();
+        const scaleX = originalCanvas.width / rect.width;
+        const scaleY = originalCanvas.height / rect.height;
+        const x = (e.clientX - rect.left) * scaleX;
+        const y = (e.clientY - rect.top) * scaleY;
+        currentCrop.endX = x;
+        currentCrop.endY = y;
+        document.getElementById(
+          "crop-coordinates"
+        ).textContent = `Selection: (${Math.round(
+          currentCrop.startX
+        )},${Math.round(currentCrop.startY)}) to (${Math.round(
+          currentCrop.endX
+        )},${Math.round(currentCrop.endY)})`;
+        drawCropSelection();
+      }
+      function handleMouseUp(e) {
+        if (!isDragging || !currentCrop) return;
+        isDragging = false;
+        normalizeCrop(currentCrop);
+        drawCropSelection();
+      }
+      function handleMouseOut() {
+        handleMouseUp();
+      }
+      function normalizeCrop(crop) {
+        if (crop.startX > crop.endX) {
+          const temp = crop.startX;
+          crop.startX = crop.endX;
+          crop.endX = temp;
+        }
+        if (crop.startY > crop.endY) {
+          const temp = crop.startY;
+          crop.startY = crop.endY;
+          crop.endY = temp;
+        }
+      }
+      function drawCropSelection() {
+        resultCtx.clearRect(0, 0, resultCanvas.width, resultCanvas.height);
+        resultCtx.drawImage(originalImage, 0, 0);
+        cropSelections.forEach((crop) =>
+          drawCropRect(crop, "rgba(0, 128, 255, 0.3)", "rgba(0, 128, 255, 0.8)")
+        );
+        if (currentCrop)
+          drawCropRect(
+            currentCrop,
+            "rgba(255, 0, 0, 0.3)",
+            "rgba(255, 0, 0, 0.8)"
+          );
+      }
+      function drawCropRect(crop, fillStyle, strokeStyle) {
+        const x = Math.min(crop.startX, crop.endX);
+        const y = Math.min(crop.startY, crop.endY);
+        const width = Math.abs(crop.endX - crop.startX);
+        const height = Math.abs(crop.endY - crop.startY);
+        resultCtx.fillStyle = fillStyle;
+        resultCtx.fillRect(x, y, width, height);
+        resultCtx.strokeStyle = strokeStyle;
+        resultCtx.lineWidth = 2;
+        resultCtx.strokeRect(x, y, width, height);
+      }
+      function addCropSelection() {
+        if (!currentCrop) {
+          alert("Please make a selection first");
+          return;
+        }
+        normalizeCrop(currentCrop);
+        cropSelections.push({
+          startX: currentCrop.startX,
+          startY: currentCrop.startY,
+          endX: currentCrop.endX,
+          endY: currentCrop.endY,
+        });
+        currentCrop = null;
+        drawCropSelection();
+        convertCropsToSprites();
+      }
+      function clearCropSelections() {
+        cropSelections = [];
+        currentCrop = null;
+        resultCtx.clearRect(0, 0, resultCanvas.width, resultCanvas.height);
+        resultCtx.drawImage(originalImage, 0, 0);
+        document.getElementById("crop-coordinates").textContent = "";
+        detectedSprites = [];
+      }
+      function convertCropsToSprites() {
+        detectedSprites = cropSelections.map((crop) => ({
+          x: Math.round(crop.startX),
+          y: Math.round(crop.startY),
+          width: Math.round(crop.endX - crop.startX),
+          height: Math.round(crop.endY - crop.startY),
+        }));
+        document.getElementById("apply-adjustments-btn").disabled = false;
+        extractSprites();
+        drawCutoutVisualization();
+      }
+
+      // ---------- Drawing and Adjustment Functions ----------
+      function drawBoundingBoxes() {
+        resultCtx.clearRect(0, 0, resultCanvas.width, resultCanvas.height);
+        resultCtx.drawImage(originalImage, 0, 0);
+        resultCtx.lineWidth = 2;
+        detectedSprites.forEach((sprite, i) => {
+          const hue = (i * 137) % 360;
+          resultCtx.strokeStyle = `hsl(${hue}, 100%, 50%)`;
+          resultCtx.fillStyle = `hsla(${hue}, 100%, 50%, 0.2)`;
+          resultCtx.fillRect(sprite.x, sprite.y, sprite.width, sprite.height);
+          resultCtx.strokeRect(sprite.x, sprite.y, sprite.width, sprite.height);
+          resultCtx.fillStyle = "white";
+          resultCtx.strokeStyle = "black";
+          resultCtx.lineWidth = 3;
+          resultCtx.font = "16px Arial";
+          resultCtx.textAlign = "center";
+          resultCtx.textBaseline = "middle";
+          const centerX = sprite.x + sprite.width / 2;
+          const centerY = sprite.y + sprite.height / 2;
+          resultCtx.strokeText(`${i + 1}`, centerX, centerY);
+          resultCtx.fillText(`${i + 1}`, centerX, centerY);
+          if (i === selectedSpriteIndex) drawResizeHandles(sprite);
+        });
+        document.getElementById(
+          "sprite-count"
+        ).textContent = `(${detectedSprites.length})`;
+      }
+
+      function drawResizeHandles(sprite) {
+        const handles = getHandlePositions(sprite);
+        resultCtx.fillStyle = "white";
+        resultCtx.strokeStyle = "black";
+        resultCtx.lineWidth = 1;
+        handles.forEach((handle) => {
+          resultCtx.beginPath();
+          resultCtx.arc(handle.x, handle.y, resizeHandleSize, 0, Math.PI * 2);
+          resultCtx.fill();
+          resultCtx.stroke();
+        });
+      }
+
+      function getHandlePositions(sprite) {
+        return [
+          { x: sprite.x, y: sprite.y, cursor: "nwse-resize", type: "nw" },
+          {
+            x: sprite.x + sprite.width / 2,
+            y: sprite.y,
+            cursor: "ns-resize",
+            type: "n",
+          },
+          {
+            x: sprite.x + sprite.width,
+            y: sprite.y,
+            cursor: "nesw-resize",
+            type: "ne",
+          },
+          {
+            x: sprite.x + sprite.width,
+            y: sprite.y + sprite.height / 2,
+            cursor: "ew-resize",
+            type: "e",
+          },
+          {
+            x: sprite.x + sprite.width,
+            y: sprite.y + sprite.height,
+            cursor: "nwse-resize",
+            type: "se",
+          },
+          {
+            x: sprite.x + sprite.width / 2,
+            y: sprite.y + sprite.height,
+            cursor: "ns-resize",
+            type: "s",
+          },
+          {
+            x: sprite.x,
+            y: sprite.y + sprite.height,
+            cursor: "nesw-resize",
+            type: "sw",
+          },
+          {
+            x: sprite.x,
+            y: sprite.y + sprite.height / 2,
+            cursor: "ew-resize",
+            type: "w",
+          },
+        ];
+      }
+
+      function handleAdjustmentMouseDown(e) {
+        if (activeMode === "manual-crop" || detectedSprites.length === 0)
+          return;
+        const rect = resultCanvas.getBoundingClientRect();
+        const scaleX = resultCanvas.width / rect.width;
+        const scaleY = resultCanvas.height / rect.height;
+        const mouseX = (e.clientX - rect.left) * scaleX;
+        const mouseY = (e.clientY - rect.top) * scaleY;
+        if (selectedSpriteIndex >= 0) {
+          const sprite = detectedSprites[selectedSpriteIndex];
+          const handles = getHandlePositions(sprite);
+          for (const handle of handles) {
+            const dx = mouseX - handle.x;
+            const dy = mouseY - handle.y;
+            if (Math.sqrt(dx * dx + dy * dy) <= resizeHandleSize) {
+              activeHandle = handle.type;
+              adjustingSprite = true;
+              resultCanvas.style.cursor = handle.cursor;
+              document.getElementById("adjustment-controls").style.display =
+                "block";
+              return;
+            }
+          }
+        }
+        for (let i = 0; i < detectedSprites.length; i++) {
+          const sprite = detectedSprites[i];
+          if (
+            mouseX >= sprite.x &&
+            mouseX <= sprite.x + sprite.width &&
+            mouseY >= sprite.y &&
+            mouseY <= sprite.y + sprite.height
+          ) {
+            selectedSpriteIndex = i;
+            drawBoundingBoxes();
+            return;
+          }
+        }
+        selectedSpriteIndex = -1;
+        drawBoundingBoxes();
+      }
+
+      function handleAdjustmentMouseMove(e) {
+        if (
+          activeMode === "manual-crop" ||
+          !adjustingSprite ||
+          activeHandle === null
+        )
+          return;
+        const rect = resultCanvas.getBoundingClientRect();
+        const scaleX = resultCanvas.width / rect.width;
+        const scaleY = resultCanvas.height / rect.height;
+        const mouseX = (e.clientX - rect.left) * scaleX;
+        const mouseY = (e.clientY - rect.top) * scaleY;
+        const sprite = detectedSprites[selectedSpriteIndex];
+        const newSprite = { ...sprite };
+        switch (activeHandle) {
+          case "nw":
+            newSprite.width += newSprite.x - mouseX;
+            newSprite.height += newSprite.y - mouseY;
+            newSprite.x = mouseX;
+            newSprite.y = mouseY;
+            break;
+          case "n":
+            newSprite.height += newSprite.y - mouseY;
+            newSprite.y = mouseY;
+            break;
+          case "ne":
+            newSprite.width = mouseX - newSprite.x;
+            newSprite.height += newSprite.y - mouseY;
+            newSprite.y = mouseY;
+            break;
+          case "e":
+            newSprite.width = mouseX - newSprite.x;
+            break;
+          case "se":
+            newSprite.width = mouseX - newSprite.x;
+            newSprite.height = mouseY - newSprite.y;
+            break;
+          case "s":
+            newSprite.height = mouseY - newSprite.y;
+            break;
+          case "sw":
+            newSprite.width += newSprite.x - mouseX;
+            newSprite.height = mouseY - newSprite.y;
+            newSprite.x = mouseX;
+            break;
+          case "w":
+            newSprite.width += newSprite.x - mouseX;
+            newSprite.x = mouseX;
+            break;
+        }
+        if (newSprite.width < 10) {
+          newSprite.width = 10;
+          if (["nw", "sw", "w"].includes(activeHandle)) {
+            newSprite.x = sprite.x + sprite.width - 10;
+          }
+        }
+        if (newSprite.height < 10) {
+          newSprite.height = 10;
+          if (["nw", "n", "ne"].includes(activeHandle)) {
+            newSprite.y = sprite.y + sprite.height - 10;
+          }
+        }
+        newSprite.x = Math.max(
+          0,
+          Math.min(newSprite.x, resultCanvas.width - 10)
+        );
+        newSprite.y = Math.max(
+          0,
+          Math.min(newSprite.y, resultCanvas.height - 10)
+        );
+        detectedSprites[selectedSpriteIndex] = newSprite;
+        drawBoundingBoxes();
+      }
+
+      function handleAdjustmentMouseUp() {
+        if (adjustingSprite) {
+          adjustingSprite = false;
+          activeHandle = null;
+          resultCanvas.style.cursor = "default";
+        }
+      }
+      function handleAdjustmentMouseOut() {
+        handleAdjustmentMouseUp();
+      }
+      function saveAdjustment() {
+        document.getElementById("adjustment-controls").style.display = "none";
+        selectedSpriteIndex = -1;
+        drawBoundingBoxes();
+      }
+      function cancelAdjustment() {
+        document.getElementById("adjustment-controls").style.display = "none";
+        selectedSpriteIndex = -1;
+        drawBoundingBoxes();
+      }
+      function applyAdjustments() {
+        if (detectedSprites.length === 0) {
+          alert("No sprites detected");
+          return;
+        }
+        extractSprites();
+        drawCutoutVisualization();
+        document.getElementById("download-all-btn").disabled = false;
+      }
+
+      // ---------- Extraction and Visualization ----------
+      function extractSprites() {
+        const spritesContainer = document.getElementById("sprites-container");
+        spritesContainer.innerHTML = "";
+        let padding = 0;
+        if (activeMode === "auto-detect") {
+          padding =
+            parseInt(document.getElementById("auto-sprite-padding").value) || 0;
+        } else if (activeMode === "custom-row") {
+          padding =
+            parseInt(document.getElementById("sprite-padding").value) || 0;
+        } else if (activeMode === "manual-crop") {
+          padding =
+            parseInt(document.getElementById("manual-sprite-padding").value) ||
+            0;
+        }
+        detectedSprites.forEach((sprite, i) => {
+          const spriteCell = document.createElement("div");
+          spriteCell.className = "sprite-cell";
+          const canvas = document.createElement("canvas");
+          canvas.width = sprite.width + padding * 2;
+          canvas.height = sprite.height + padding * 2;
+          const ctx = canvas.getContext("2d");
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(
+            originalImage,
+            sprite.x,
+            sprite.y,
+            sprite.width,
+            sprite.height,
+            padding,
+            padding,
+            sprite.width,
+            sprite.height
+          );
+          const spriteInfo = document.createElement("p");
+          spriteInfo.textContent =
+            `Sprite ${i + 1} - ${canvas.width}×${canvas.height}px` +
+            (padding > 0 ? ` (${padding}px padding)` : "");
+          const downloadBtn = document.createElement("button");
+          downloadBtn.textContent = "Download";
+          downloadBtn.addEventListener("click", () => {
+            downloadSprite(canvas, `sprite_${i + 1}.png`);
+          });
+          spriteCell.appendChild(canvas);
+          spriteCell.appendChild(spriteInfo);
+          spriteCell.appendChild(downloadBtn);
+          spritesContainer.appendChild(spriteCell);
+        });
+      }
+
+      function drawCutoutVisualization() {
+        cutoutCtx.clearRect(0, 0, cutoutCanvas.width, cutoutCanvas.height);
+        if (!originalImage || detectedSprites.length === 0) return;
+        let offsetX = 0,
+          offsetY = 0,
+          maxRowHeight = 0;
+        detectedSprites.forEach((sprite) => {
+          const padding =
+            activeMode === "manual-crop"
+              ? parseInt(
+                  document.getElementById("manual-sprite-padding").value
+                ) || 0
+              : activeMode === "custom-row"
+              ? parseInt(document.getElementById("sprite-padding").value) || 0
+              : parseInt(
+                  document.getElementById("auto-sprite-padding").value
+                ) || 0;
+          if (offsetX + sprite.width + padding * 2 > cutoutCanvas.width) {
+            offsetX = 0;
+            offsetY += maxRowHeight;
+            maxRowHeight = 0;
+          }
+          cutoutCtx.drawImage(
+            originalImage,
+            sprite.x,
+            sprite.y,
+            sprite.width,
+            sprite.height,
+            offsetX + padding,
+            offsetY + padding,
+            sprite.width,
+            sprite.height
+          );
+          offsetX += sprite.width + padding * 2 + 10;
+          maxRowHeight = Math.max(maxRowHeight, sprite.height + padding * 2);
+        });
+      }
+
+      // ---------- Download Functions ----------
+      function downloadSprite(canvas, filename) {
+        const removeBgOption =
+          document.getElementById("remove-bg-option").checked;
+        let finalCanvas = canvas;
+        if (removeBgOption && detectedBgColor) {
+          const tempCanvas = document.createElement("canvas");
+          tempCanvas.width = canvas.width;
+          tempCanvas.height = canvas.height;
+          const tempCtx = tempCanvas.getContext("2d");
+          tempCtx.drawImage(canvas, 0, 0);
+          let spriteImageData = tempCtx.getImageData(
+            0,
+            0,
+            canvas.width,
+            canvas.height
+          );
+          spriteImageData = removeBackgroundAndSmooth(
+            spriteImageData,
+            detectedBgColor,
+            50
+          );
+          tempCtx.putImageData(spriteImageData, 0, 0);
+          finalCanvas = tempCanvas;
+        }
+        const link = document.createElement("a");
+        link.download = filename;
+        finalCanvas.toBlob(function (blob) {
+          const url = URL.createObjectURL(blob);
+          link.href = url;
+          document.body.appendChild(link);
+          link.click();
+          setTimeout(function () {
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+          }, 100);
+        });
+      }
+
+      function downloadAllSprites() {
+        const spriteCells = document.querySelectorAll(".sprite-cell canvas");
+        if (spriteCells.length === 0) {
+          alert("No sprites to download");
+          return;
+        }
+        spriteCells.forEach((canvas, i) => {
+          setTimeout(() => {
+            downloadSprite(canvas, `sprite_${i + 1}.png`);
+          }, i * 100);
+        });
+      }
+    </script>
+  </body>
+</html>
