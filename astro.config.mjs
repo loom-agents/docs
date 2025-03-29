@@ -37,9 +37,9 @@ export default defineConfig({
         {
           label: "AI Reference",
           items: [
-            { label: "llms.txt", link: "docs/llms.txt" },
-            { label: "Abridged llms.txt", link: "docs/llms-small.txt" },
-            { label: "Complete llms.txt", link: "docs/llms-full.txt" },
+            { label: "llms.txt", link: "llms.txt" },
+            { label: "Abridged llms.txt", link: "llms-small.txt" },
+            { label: "Complete llms.txt", link: "llms-full.txt" },
           ],
         },
       ],
