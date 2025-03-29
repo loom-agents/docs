@@ -34,6 +34,15 @@ export default defineConfig({
             { label: "Trace", slug: "reference/trace" },
           ],
         },
+        {
+          label: "AI Reference",
+          items: [
+            // direct link to docs/llms.txt
+            { label: "llms.txt", link: "llms.txt" },
+            { label: "Abridged llms.txt", link: "llms-small.txt" },
+            { label: "Complete llms.txt", link: "llms-full.txt" },
+          ],
+        },
       ],
     }),
   ],
