@@ -1,18 +1,18 @@
 // @ts-check
 import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
+import starlightLlmsTxt from "starlight-llms-txt";
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://loom-agents.github.io',
-  base: '/docs',
+  site: "https://loom-agents.github.io",
+  base: "/docs",
   integrations: [
     starlight({
       title: "Loom",
       favicon: "favicon.ico",
-      customCss: [
-        './src/styles/theme.css',
-      ],
+      customCss: ["./src/styles/theme.css"],
+      plugins: [starlightLlmsTxt()],
       social: {
         github: "https://github.com/loom-agents/agents",
       },
